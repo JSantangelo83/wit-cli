@@ -150,21 +150,32 @@ install(){
     echo "[+] Reloading user systemd daemon"
     "${userenv[@]}" systemctl --user daemon-reload
 
-    echo "[+] Enabling service"
-    if ! "${userenv[@]}" systemctl --user enable "$service_name"; then
-        echo "[x] Failed to enable service: $service_name"
-        exit 1
+    echo "[+] Checking if service is enabled"
+    if ! "${userenv[@]}" systemctl --user is-enabled "$service_name" >/dev/null 2>&1; then
+        echo "[+] Enabling service $service_name"
+        if ! "${userenv[@]}" systemctl --user enable "$service_name"; then
+            echo "[x] Failed to enable service: $service_name"
+            exit 1
+        fi
+    else
+        echo "[!] Service $service_name already enabled"
     fi
 
-    echo "[+] Starting service"
-    if ! "${userenv[@]}" systemctl --user start "$service_name"; then
-        echo "[x] Failed to start the service"
-        echo "[i] Service status:"
-        "${userenv[@]}" systemctl --user status "$service_name"
-        exit 1
+    echo "[+] Checking if service is active"
+    if ! "${userenv[@]}" systemctl --user is-active "$service_name" >/dev/null 2>&1; then
+        echo "[+] Starting service $service_name"
+        if ! "${userenv[@]}" systemctl --user start "$service_name"; then
+            echo "[x] Failed to start the service"
+            echo "[i] Service status:"
+            "${userenv[@]}" systemctl --user status "$service_name"
+            exit 1
+        fi
+    else
+        echo "[!] Service $service_name already running"
     fi
 
-    echo "[+] Service started successfully"
+    echo "[+] Service is enabled and running"
+
 
 
     # If running, route it through Cloudflare
