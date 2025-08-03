@@ -130,23 +130,43 @@ install(){
     fi
 
     # Install and run service
-    if ! [ -f "$home/.config/systemd/user/$service" ]; then
-        sudo -u "$user" -H mkdir -p "$home/.config/systemd/user"
-        sudo -u "$user" -H cp "$home/$reponame/$service" "$home/.config/systemd/user/"
+    service_name="$(basename "$service")"
+    user_systemd_dir="$home/.config/systemd/user"
+
+    sudo loginctl enable-linger "$user"
+
+    uid=$(id -u "$user")
+    userenv=(sudo -u "$user" env XDG_RUNTIME_DIR="/run/user/$uid")
+
+    if ! "${userenv[@]}" test -f "$user_systemd_dir/$service_name"; then
+        echo "[+] Installing systemd service for $user"
+        "${userenv[@]}" mkdir -p "$user_systemd_dir"
+        "${userenv[@]}" cp "$home/$reponame/$service" "$user_systemd_dir/"
+    else
+        echo "[!] Service already installed: $user_systemd_dir/$service_name"
     fi
 
-    sudo -u "$user" -H systemctl --user daemon-reload
-    sudo -u "$user" -H systemctl --user enable "$(basename "$service")"
-    sudo -u "$user" -H systemctl --user start "$(basename "$service")"
+    echo "[+] Reloading user systemd daemon"
+    "${userenv[@]}" systemctl --user daemon-reload
 
-    # If not running, stop
-    if ! sudo -u "$user" -H systemctl --user start "$(basename "$service")"; then
+    echo "[+] Enabling service"
+    if ! "${userenv[@]}" systemctl --user enable "$service_name"; then
+        echo "[x] Failed to enable service: $service_name"
+        exit 1
+    fi
+
+    echo "[+] Starting service"
+    if ! "${userenv[@]}" systemctl --user start "$service_name"; then
         echo "[x] Failed to start the service"
-        sudo -u "$user" -H systemctl --user status "$(basename "$service")"
+        echo "[i] Service status:"
+        "${userenv[@]}" systemctl --user status "$service_name"
+        echo "[i] Logs:"
+        "${userenv[@]}" journalctl --user -u "$service_name" --no-pager -n 20
         exit 1
     fi
 
     echo "[+] Service started successfully"
+
 
     # If running, route it through Cloudflare
     cat <<EOF | sudo tee -a /etc/cloudflare/config.yml > /dev/null
