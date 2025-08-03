@@ -1,4 +1,4 @@
-#!/bin/bash
+#!bash
 
 wit_yaml="./wit.yaml"
 
@@ -13,11 +13,11 @@ check_dependencies() {
     done
 
     if [ "${#missing[@]}" -gt 0 ]; then
-        /bin/echo "[-] The following required command(s) are missing:"
+        echo "[-] The following required command(s) are missing:"
         for cmd in "${missing[@]}"; do
-            /bin/echo "  - $cmd"
+            echo "  - $cmd"
         done
-        /bin/echo "[-] Please install them and try again."
+        echo "[-] Please install them and try again."
         exit 1
     fi
 }
@@ -34,18 +34,18 @@ get_port() {
 
 
 help() {
-    /bin/echo "Usage: $0 [COMMAND | OPTION] [ARGS...]"
-    /bin/echo
-    /bin/echo "Commands and Options:"
-    /bin/echo "  update        --update,  -u           Update the services (WILL DISABLE)"
-    /bin/echo "  install       --install, -i [PKGS...] Install one or more services"
-    /bin/echo "  help          --help,    -h           Show this help message"
-    /bin/echo
-    /bin/echo "Examples:"
-    /bin/echo "  $0 update"
-    /bin/echo "  $0 -u"
-    /bin/echo "  $0 install service1 service2"
-    /bin/echo "  $0 -i service1"
+    echo "Usage: $0 [COMMAND | OPTION] [ARGS...]"
+    echo
+    echo "Commands and Options:"
+    echo "  update        --update,  -u           Update the services (WILL DISABLE)"
+    echo "  install       --install, -i [PKGS...] Install one or more services"
+    echo "  help          --help,    -h           Show this help message"
+    echo
+    echo "Examples:"
+    echo "  $0 update"
+    echo "  $0 -u"
+    echo "  $0 install service1 service2"
+    echo "  $0 -i service1"
 }
 
 update(){
@@ -65,46 +65,46 @@ install(){
     reponame=$(echo "$giturl" | grep -oE '[^/]+\.git$' | sed 's/\.git$//')
 
     if ! [ -n $giturl ]; then
-        /bin/echo '[x] Service not found';
+        echo '[x] Service not found';
         exit 1;
     fi
 
     user="$service"
 
-    /bin/sudo su
+    sudo su
 
     # Create user if it doesn't exist
-    if ! /bin/id "$user" &>/dev/null; then
-        /bin/echo "[+] Creating user: $user"
-        /bin/useradd -m "$user"
+    if ! id "$user" &>/dev/null; then
+        echo "[+] Creating user: $user"
+        useradd -m "$user"
     else
-        /bin/echo "[!] User $user already exists"
+        echo "[!] User $user already exists"
     fi
 
     # Ensure user is in required groups
     for group in gitdeploy docker; do
         if ! id -nG "$user" | grep -qw "$group"; then
-            /bin/echo "[+] Adding $user to $group group"
-            /bin/usermod -aG "$group" "$user"
+            echo "[+] Adding $user to $group group"
+            usermod -aG "$group" "$user"
         fi
     done
     
     home="/home/$user"
     
     # Install ssh config to use gitdeploy's key
-    /bin/sudo -u "$user" -H /bin/ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" -q
+    sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" -q
     echo -e '[+] Generated keys:\n'
-    /bin/sudo -u "$user" -H /bin/cat $home/.ssh/id_rsa.pub
+    sudo -u "$user" -H cat $home/.ssh/id_rsa.pub
     # Show key and wait for user input to continue
     echo -e "\nPress Enter after you added the key as a Deploy Key on Github..."
     read
 
     # Clone repo
     if [ ! -d "$home/$reponame/.git" ]; then
-        /bin/echo "[+] Cloning $giturl"
-        /bin/sudo -u "$user" -H git clone "$giturl" "$home/$reponame"
+        echo "[+] Cloning $giturl"
+        sudo -u "$user" -H git clone "$giturl" "$home/$reponame"
     else
-        /bin/echo "[!] Repo already exists: $home/$reponame"
+        echo "[!] Repo already exists: $home/$reponame"
     fi
 
     # Import conf file
@@ -121,36 +121,36 @@ install(){
         # shellcheck source=/dev/null
         source "$conf_file"
     else
-        /bin/echo "[!] Config file not found: $conf_file. Using defaults."
+        echo "[!] Config file not found: $conf_file. Using defaults."
     fi
 
     # Install and run service
     if ! [ -f "$home/.config/systemd/user/$service" ]; then
-        /bin/sudo -u "$user" -H /bin/mkdir -p $home/.config/systemd/user
-        /bin/sudo -u "$user" -H /bin/cp "$home/$reponame/$service" "$home/.config/systemd/user/"
+        sudo -u "$user" -H mkdir -p $home/.config/systemd/user
+        sudo -u "$user" -H cp "$home/$reponame/$service" "$home/.config/systemd/user/"
     fi
 
-    /bin/sudo -u "$user" -H /bin/systemctl --user daemon-reload
-    /bin/sudo -u "$user" -H /bin/systemctl --user enable $(basename $service)
-    /bin/sudo -u "$user" -H /bin/systemctl --user start $(basename $service)
+    sudo -u "$user" -H systemctl --user daemon-reload
+    sudo -u "$user" -H systemctl --user enable $(basename $service)
+    sudo -u "$user" -H systemctl --user start $(basename $service)
 
     # If not running, stop
-    if ! /bin/sudo -u "$user" -H /bin/systemctl --user start "$(basename "$service")"; then
-        /bin/echo "[x] Failed to start the service"
-        /bin/sudo -u "$user" -H /bin/systemctl --user status "$(basename "$service")"
+    if ! sudo -u "$user" -H systemctl --user start "$(basename "$service")"; then
+        echo "[x] Failed to start the service"
+        sudo -u "$user" -H systemctl --user status "$(basename "$service")"
         exit 1
     fi
 
-    /bin/echo "[+] Service started successfully"
+    echo "[+] Service started successfully"
     
     # If running, route it through Cloudflare
-    /bin/cat <<EOF | /bin/sudo /bin/tee -a /etc/cloudflare/config.yml > /dev/null
+    cat <<EOF | sudo tee -a /etc/cloudflare/config.yml > /dev/null
   - hostname: $dns.witjt.org
     service: http://localhost:$port
 EOF
 
-    /bin/cloudflared tunnel route dns wit-shared "$dns.witjt.org"
-    /bin/systemctl restart cloudflared
+    cloudflared tunnel route dns wit-shared "$dns.witjt.org"
+    systemctl restart cloudflared
 }
 
 case "$1" in
@@ -164,7 +164,7 @@ case "$1" in
         help
         ;;
     *)
-        /bin/echo "Unknown command: $1"
+        echo "Unknown command: $1"
         help
         exit 1
         ;;
