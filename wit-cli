@@ -1,6 +1,6 @@
 #!/bin/bash
 
-wit_yaml="./wit.yaml"
+wit_yaml="/etc/wit-cli/wit.yaml"
 
 check_dependencies() {
     local missing=()
