@@ -1,0 +1,212 @@
+#!/bin/bash
+
+b64_priv="LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUNGd0FBQUFkemMyZ3RjbgpOaEFBQUFBd0VBQVFBQUFnRUF1NGl6ZEZxVEJYY3hwT1AwNm9ocWpZYUgwZ0piVysxeGN5c25vNjl4aG8xcG9KVWs0dlpQCkNQbzI5RUhTU1MzYnVoSlpEclhTbVJ6cStmczVhZkhDKzRGNHdyZWFFaE9IUGNGRXRJbnlBNXJma3B2aldXdnk3K2hVN24KSDlycnd5dnJFWkRKV21NZFFPUVFLS204OEZyL3BGK1VvUWMrU0FsMHRXTUpPaW1lRS9FeTRzSW9xL2Q0N2M2bGJHMW9pSwp1cGJqdERMdU52L1JDVHRpU1l6RWtpdlhjYUd2NE54SXpuQlJOM2hhS3dWay9EbkZydmhTZG42Rk9KL2FWU2g4SDBteVpkClVNT2R1SDFqZjRnU3orRy9VWUZ0RlprWWpGQVRaYkN0ZDFZTmRMSnZyNjNVcEZ6S2g0RzF2bEFna1NLS3h5aXVEV2ovY2QKakpIcjFBaGozbUVQdndPd01tc0sxT1Qzd0NGZjZwbVExOUZvY09RZmMvNHg2dk9YSzBhUVZYc2VUVHBnMXJtMmxmWFpqTApYRTJhOFpFL1pHUDRGZ3BTQlZVVFA4RmYyclVsMzNqTENCdWpyUmRoRmNrUHB3VTVjalN5L2xpUzN2ZjI2WVVhM3dHMVBpCkNDV3k5SUMrdlFpUjkrOTJQS1ZvK3hPNVgvZ1VxUWJBYVpSRFYzcDAyU2o0NFVTZ3EvalFzbzhuM1VTMUdhWkFpRHRhZWgKb2pYazFoclkxVGxRcFFOV3BsS3hRUm1KczE3YUY0V2lrMGt1QjdVbjFGN1h5Vy9wWTYxaTlIa081ZzJTYnZ2cVN5ZDhTSApFTnBHa2YyMW5jUi81UFRES04rNDBmeHA0UUp3S0xnL3FjU1lpYlZodUZYLzZGd2lyRDBkOFFRc1hQWWJWZ2Fadjh6UitsCnNBQUFkQWk4akZwSXZJeGFRQUFBQUhjM05vTFhKellRQUFBZ0VBdTRpemRGcVRCWGN4cE9QMDZvaHFqWWFIMGdKYlcrMXgKY3lzbm82OXhobzFwb0pVazR2WlBDUG8yOUVIU1NTM2J1aEpaRHJYU21SenErZnM1YWZIQys0RjR3cmVhRWhPSFBjRkV0SQpueUE1cmZrcHZqV1d2eTcraFU3bkg5cnJ3eXZyRVpESldtTWRRT1FRS0ttODhGci9wRitVb1FjK1NBbDB0V01KT2ltZUUvCkV5NHNJb3EvZDQ3YzZsYkcxb2lLdXBianRETHVOdi9SQ1R0aVNZekVraXZYY2FHdjROeEl6bkJSTjNoYUt3VmsvRG5GcnYKaFNkbjZGT0ovYVZTaDhIMG15WmRVTU9kdUgxamY0Z1N6K0cvVVlGdEZaa1lqRkFUWmJDdGQxWU5kTEp2cjYzVXBGektoNApHMXZsQWdrU0tLeHlpdURXai9jZGpKSHIxQWhqM21FUHZ3T3dNbXNLMU9UM3dDRmY2cG1RMTlGb2NPUWZjLzR4NnZPWEswCmFRVlhzZVRUcGcxcm0ybGZYWmpMWEUyYThaRS9aR1A0RmdwU0JWVVRQOEZmMnJVbDMzakxDQnVqclJkaEZja1Bwd1U1Y2oKU3kvbGlTM3ZmMjZZVWEzd0cxUGlDQ1d5OUlDK3ZRaVI5KzkyUEtWbyt4TzVYL2dVcVFiQWFaUkRWM3AwMlNqNDRVU2dxLwpqUXNvOG4zVVMxR2FaQWlEdGFlaG9qWGsxaHJZMVRsUXBRTldwbEt4UVJtSnMxN2FGNFdpazBrdUI3VW4xRjdYeVcvcFk2CjFpOUhrTzVnMlNidnZxU3lkOFNIRU5wR2tmMjFuY1IvNVBUREtOKzQwZnhwNFFKd0tMZy9xY1NZaWJWaHVGWC82RndpckQKMGQ4UVFzWFBZYlZnYVp2OHpSK2xzQUFBQURBUUFCQUFBQi96SFFIZHJLTkVNL1pmQm1uS2V2bEo0REhoQ3FqNW5iZUVjZgpMMmhMTWR5THM0TDBHdGd1bE0vTnBzczZzS0MvalozZlFjaW1nMG9vWkVJQ2VUMnEraC9VUkQ5MGhYaEh0NlN2c1pCREZBClhoSFlIVDVvL2FISzJkQ1BKTlZSVVU2R1crcE9peTEzSms0V1JqU0c0YWoyZ3ZFbWNsUlRtRGVLUzNYaTJKQ2FmV0xPcnIKV00zVURRZTA2dmxVRTN6b3gvRElJN081MDR6SVpyNE5DQTZCVmJWOTc3dy9ObmlFQ3RMTEFzZTVNRG85TkpYS3dyZTNQagpBN2F5ZWZUbDlRWWFmdDYzVWhJaDQ4TWRpMUJVMUtwalRHNVo4cC9LQ3JzNmlleDVBWnF4UU9HK2crd21RRlZvVUdPdUVKCmg4c0NuZEF2L2p6bGZCakJpeGZMcXRpbllkODdSUFU3eW40TVlnRE5HZXQ5WkFiRVRnMngyZm8xQnkvRkZnNzRjUHdVTU0KMVBTczBJb2FwZG5VYk9oVUgwVE1tK0Z3Uzg0RTRhQWFVODNyVHoxRksyT3poelhGems1bEZEQ0hBQ2FGSWpyenB0eXV5eApsSUZ1TVZhNGZTUnhaSTlKanN4T2dLMmtnL1RvWnlyZy9PUDgvZEZLSHJhNi82c3BUaVlNRHI2UzVNY0k5ck1teXpNK0kwCjdJL2tQWHB5K3pOamhPWFNDTGwrMDRrMlNMMVdxcUZ4Mnpvc0xSU1NMYjAwbWxNODI4dlBTdWJXUkpxREwwNzkwL0Z6VmsKTE0xU0htTzZHdnI2bTg1VzFXZlFyYkRaMUxGcEVyN2YxS0ZNQnZPZGx0aTEzVEllaHRoWFVVUW92aXU2M3JPNzd6V3N5SQpRazFKdTA2a053OGdIOXpHRUFBQUVBTUUxd2t4U1gxWDNrdXRGbURqdjVFeUhWV1gyMVFSZGVRaUpSWWh5anpWclpCZTJSCnc5c3NKT3dxMUxETVVqQ21kZUtGeVpPY1pMYnJkMklsQW5tR1gweDRNdy9Jd3o0ZEx1di9hOXJxZ3JiUTN1aUREZWtVYWcKdlVCeGhuZ21nV1pKRmlZRHgrUDJCVTBXS3hGOEoyN09tbHFaMktrampHa000NlRHMjhEaGd0dElXN0Jubnl5OW12Nm9xNgo4NnJjNllhV3RXTDQ1dHpLbUxqMzBzQ0V0TzdRbDd2RHV1MFJVdXpVUmNlbWRaMm9KdXp3ak4wYmxuemp5ZXg2QnBKbEJNCnh3UWhhZS9CUXpQOUVsWEVqbHlKUkFxSXprYXByZGx4T0JuVTFqWkhQNDdHZTlxRkpaMG9aRWtvYTFQVkUxTEJzZUNOREwKRGkyQXkzTktFNC9Od0FBQUFRRUE2WnRtemdjNlBJNWJxWktUd3FqOHZDSzdzZ05CS1dLbUtLdlFEb0lNQU5LVUNDK21NdAprdjBEaGtrUHJKMTg3czNYZHNzVU8vVlpSYitWSFhoWVVyWXYrc2R5SWVqVFpIeDRwN3dLckc5RDRnRHlDY1NSMWxoRkd0Cnh2VGV1emhYYXViQnNRdTllUEN0amZlb3dJSGZoK0xORUtiUTZqZGduTzh0UWk2dGxxNlVHM1cwYWVYYVdLV2g5YUlHT0MKK2twbkJUeElQcjN4OElBT04vaktOSTFtcC9DbGlwaDJlNEZubzI1NTVCblR1MWwvbjQ4bG01ZXFZSnZnMzFiVWdqM0tURgpWZ1RRNGxQbFFraEw4U05sdXVTbGtBSkI3YklVeTdaV2NxVnkvcGV0YUtDVWx6WWs5MmR3d25XTG0xK1l2Mnc5YVN2OU1lCmFEODg3Z29qSmVGUUFBQVFFQXpZS3dxMCtsOW54SG1SNnhySnFoK2t6bmF3d1JaQ0Q0QWF4bCtjbi9Na0g0Q1NwNG9FRkIKUm82Wk9IVWJicTlkbVo3SnpPK0VCUHBxSFlzMmxkdUdyeXZuR1ZubHBoSXVFOWNyR002cDJQL2dSKzZIYkdsRmdWY29rYgpNR0IwcVVMRTNHOTBrbmJMajdEOVpDMUFSS1lidWQ1VENwK0Z2SHo1QVJsUkd2Q3NpMlF6RlptTjhrVDlZclBnbHFmY1ZaClVTTlVaWlRzc01aVE80cnRpeUZnNm5XWkNtVWQ5ZVpKWXY3dGJMYUY4MWdqTzhUVzJjeEF3VzNka05EUDRtK2pyR0xRb2UKQzhnQ2JwU3lHYzBqdWUrVkt2eEczOWsvVFRtUkNiQURPaGw4SS9JMzFWck1YQkVNUlUydXFlUGwya0JVQUtkOUJkdm5peQpuVXp5T21tQ3J3QUFBQWh5YjI5MFFIZHBkQUVDQXdRPQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K"
+b64_pub="3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFDQVFDN2lMTjBXcE1GZHpHazQvVHFpR3FOaG9mU0FsdGI3WEZ6S3llanIzR0dqV21nbFNUaTlrOEkramIwUWRKSkxkdTZFbGtPdGRLWkhPcjUremxwOGNMN2dYakN0NW9TRTRjOXdVUzBpZklEbXQrU20rTlphL0x2NkZUdWNmMnV2REsrc1JrTWxhWXgxQTVCQW9xYnp3V3Yra1g1U2hCejVJQ1hTMVl3azZLWjRUOFRMaXdpaXI5M2p0enFWc2JXaUlxNmx1TzBNdTQyLzlFSk8ySkpqTVNTSzlkeG9hL2czRWpPY0ZFM2VGb3JCV1Q4T2NXdStGSjJmb1U0bjlwVktId2ZTYkpsMVF3NTI0ZldOL2lCTFA0YjlSZ1cwVm1SaU1VQk5sc0sxM1ZnMTBzbSt2cmRTa1hNcUhnYlcrVUNDUklvckhLSzROYVA5eDJNa2V2VUNHUGVZUSsvQTdBeWF3clU1UGZBSVYvcW1aRFgwV2h3NUI5ei9qSHE4NWNyUnBCVmV4NU5PbURXdWJhVjlkbU10Y1RacnhrVDlrWS9nV0NsSUZWUk0vd1YvYXRTWGZlTXNJRzZPdEYyRVZ5UStuQlRseU5MTCtXSkxlOS9icGhScmZBYlUrSUlKYkwwZ0w2OUNKSDM3M1k4cFdqN0U3bGYrQlNwQnNCcGxFTlhlblRaS1BqaFJLQ3IrTkN5anlmZFJMVVpwa0NJTzFwNkdpTmVUV0d0alZPVkNsQTFhbVVyRkJHWW16WHRvWGhhS1RTUzRIdFNmVVh0ZkpiK2xqcldMMGVRN21EWkp1KytwTEozeEljUTJrYVIvYldkeEgvazlNTW8zN2pSL0duaEFuQW91RCtweEppSnRXRzRWZi9vWENLc1BSM3hCQ3hjOWh0V0JwbS96Tkg2V3c9PSByb290QHdpdAo="
+
+gitdeploy_path="/etc/ssh/git-deploy"
+wit_yaml="./wit.yaml"
+
+check_dependencies() {
+    local missing=()
+    local dependencies=("yq")
+
+    for cmd in "${dependencies[@]}"; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            missing+=("$cmd")
+        fi
+    done
+
+    if [ "${#missing[@]}" -gt 0 ]; then
+        /bin/echo "[-] The following required command(s) are missing:"
+        for cmd in "${missing[@]}"; do
+            /bin/echo "  - $cmd"
+        done
+        /bin/echo "[-] Please install them and try again."
+        exit 1
+    fi
+}
+
+
+install_gitdeploy_key() {
+    if ! [ -d "$gitdeploy_path" ]; then
+        /bin/echo "[+] Creating gitdeploy key directory: $gitdeploy_path"
+        /bin/sudo /bin/mkdir -p "$gitdeploy_path"
+    fi
+
+    if ! [ -f "$gitdeploy_path/id_rsa" ]; then
+        /bin/echo "[+] Installing gitdeploy key pair"
+        /bin/echo "$b64_priv" | base64 -d | /bin/sudo /bin/tee "$gitdeploy_path/id_rsa" > /dev/null
+        /bin/echo "$b64_pub" | base64 -d | /bin/sudo /bin/tee "$gitdeploy_path/id_rsa.pub" > /dev/null
+
+        /bin/sudo /bin/chmod 600 "$gitdeploy_path/id_rsa"
+        /bin/sudo /bin/chmod 644 "$gitdeploy_path/id_rsa.pub"
+
+        if ! getent group gitdeploy >/dev/null; then
+            /bin/echo "[+] Creating group 'gitdeploy'"
+            /bin/sudo /bin/groupadd gitdeploy
+        fi
+
+        /bin/sudo /bin/chown root:gitdeploy "$gitdeploy_path/id_rsa"
+        /bin/sudo /bin/chown root:gitdeploy "$gitdeploy_path/id_rsa.pub"
+
+        /bin/sudo /bin/chmod 640 "$gitdeploy_path/id_rsa"
+        /bin/sudo /bin/chmod 644 "$gitdeploy_path/id_rsa.pub"
+
+        /bin/echo "[+] Deploy key successfully installed"
+    else
+        /bin/echo "[-] Deploy key already exists at $gitdeploy_path"
+    fi
+}
+
+get_port() {
+    while :; do
+        port=$(shuf -i 2000-65000 -n 1)
+        if ! ss -tuln | awk '{print $5}' | grep -q ":$port\$"; then
+            echo "$port"
+            return
+        fi
+    done
+}
+
+
+help() {
+    /bin/echo "Usage: $0 [COMMAND | OPTION] [ARGS...]"
+    /bin/echo
+    /bin/echo "Commands and Options:"
+    /bin/echo "  update        --update,  -u           Update the services (WILL DISABLE)"
+    /bin/echo "  install       --install, -i [PKGS...] Install one or more services"
+    /bin/echo "  help          --help,    -h           Show this help message"
+    /bin/echo
+    /bin/echo "Examples:"
+    /bin/echo "  $0 update"
+    /bin/echo "  $0 -u"
+    /bin/echo "  $0 install service1 service2"
+    /bin/echo "  $0 -i service1"
+}
+
+update(){
+    check_dependencies;
+    install_gitdeploy_key;
+}
+
+install(){
+    check_dependencies;
+    install_gitdeploy_key;
+    
+    service="$1"
+    if ! [ -n $service ]; then
+        help;
+        exit 1;
+    fi
+
+    giturl="$(yq -r ".services[\"$service\"].giturl" $wit_yaml)"
+    reponame=$(echo "$giturl" | grep -oE '[^/]+\.git$' | sed 's/\.git$//')
+
+    if ! [-n $giturl ]; then
+        /bin/echo '[x] Service not found';
+        exit 1;
+    fi
+
+    user="$service"
+
+    /bin/sudo su
+
+    # Create user if it doesn't exist
+    if ! /bin/id "$user" &>/dev/null; then
+        /bin/echo "[+] Creating user: $user"
+        /bin/useradd -m "$user"
+    else
+        /bin/echo "[!] User $user already exists"
+    fi
+
+    # Ensure user is in required groups
+    for group in gitdeploy docker; do
+        if ! id -nG "$user" | grep -qw "$group"; then
+            /bin/echo "[+] Adding $user to $group group"
+            /bin/usermod -aG "$group" "$user"
+        fi
+    done
+    
+    home="/home/$user"
+    
+    # Install ssh config to use gitdeploy's key
+    /bin/sudo -u "$user" -H mkdir -p "$home/.ssh"
+    ssh_config="$home/.ssh/config"
+    if ! /bin/sudo -u "$user" grep -q "IdentityFile" "$ssh_config" 2>/dev/null; then
+        /bin/sudo -u "$user" -H /bin/bash -c "/bin/mkdir -p $home/.ssh && /bin/echo 'Host github.com
+  IdentityFile /etc/ssh/git-deploy/id_rsa
+  IdentitiesOnly yes' > ~/.ssh/config"
+    fi
+
+
+    # Clone repo
+    if [ ! -d "$home/$reponame/.git" ]; then
+        /bin/echo "[+] Cloning $giturl"
+        /bin/sudo -u "$user" -H git clone "$giturl" "$home/$reponame"
+    else
+        /bin/echo "[!] Repo already exists: $home/$reponame"
+    fi
+
+    # Import conf file
+
+    dns="$reponame"
+    service="$reponame.service"
+    port="$(get_port)"
+    name="$reponame"
+    description=""
+
+    # Load overrides from file if it exists
+    conf_file="$home/$reponame/wit.conf"
+    if [ -f "$conf_file" ]; then
+        # shellcheck source=/dev/null
+        source "$conf_file"
+    else
+        /bin/echo "[!] Config file not found: $conf_file. Using defaults."
+    fi
+
+    # Install and run service
+    if ! [ -f "$home/.config/systemd/user/$service" ]; then
+        /bin/sudo -u "$user" -H /bin/mkdir -p $home/.config/systemd/user
+        /bin/sudo -u "$user" -H /bin/cp "$home/$reponame/$service" "$home/.config/systemd/user/"
+    fi
+
+    /bin/sudo -u "$user" -H /bin/systemctl --user daemon-reload
+    /bin/sudo -u "$user" -H /bin/systemctl --user enable $(basename $service)
+    /bin/sudo -u "$user" -H /bin/systemctl --user start $(basename $service)
+
+    # If not running, stop
+    if ! /bin/sudo -u "$user" -H /bin/systemctl --user start "$(basename "$service")"; then
+        /bin/echo "[x] Failed to start the service"
+        /bin/sudo -u "$user" -H /bin/systemctl --user status "$(basename "$service")"
+        exit 1
+    fi
+
+    /bin/echo "[+] Service started successfully"
+    
+    # If running, route it through Cloudflare
+    /bin/cat <<EOF | /bin/sudo /bin/tee -a /etc/cloudflare/config.yml > /dev/null
+  - hostname: $dns.witjt.org
+    service: http://localhost:$port
+EOF
+
+    /bin/cloudflared tunnel route dns wit-shared "$dns.witjt.org"
+    
+}
+
+case "$1" in
+    update|-u|--update)
+        update
+        ;;
+    install|-i|--install)
+        install $2
+        ;;
+    help|-h|--help|"")
+        help
+        ;;
+    *)
+        /bin/echo "Unknown command: $1"
+        help
+        exit 1
+        ;;
+esac
+
