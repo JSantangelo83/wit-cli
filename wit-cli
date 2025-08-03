@@ -89,14 +89,19 @@ install(){
 
     home="/home/$user"
 
-    if ! [ -f "$home/.ssh/id_rsa" ]; then
-        # Generate ssh keys and show public
+    # Install ssh key if it doesn't exist
+    if ! sudo -u "$user" test -f "$home/.ssh/id_rsa"; then
+        echo "[+] Generating SSH key for $user"
+        sudo -u "$user" -H mkdir -p "$home/.ssh"
         sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f "$home/.ssh/id_rsa" -N "" -q
-        echo -e '[+] Generated keys:\n'
+
+        echo -e '[+] Public key:\n'
         sudo -u "$user" -H cat "$home/.ssh/id_rsa.pub"
-        # Show key and wait for user input to continue
+
         echo -e "\nPress Enter after you added the key as a Deploy Key on Github..."
         read
+    else
+        echo "[!] SSH key already exists for $user"
     fi
 
     # Clone repo
