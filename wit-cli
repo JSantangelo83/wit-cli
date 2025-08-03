@@ -168,7 +168,9 @@ install(){
 
 
     # If running, route it through Cloudflare
-    sudo yq -y -i ".ingress += [{hostname: \"$dns.witjt.org\", service: \"http://localhost:$port\"}]" /etc/cloudflared/config.yml
+    sudo yq -y -i '
+        .ingress |= ((.[0:-1]) + [{"hostname": "'$dns'.witjt.org", "service": "http://localhost:'$port'"}] + [.[-1]])
+    ' /etc/cloudflared/config.yml
     
     sudo cloudflared tunnel route dns wit-shared "$dns.witjt.org"
     sudo systemctl restart cloudflared
