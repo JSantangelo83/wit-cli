@@ -1,4 +1,4 @@
-#!bash
+#!/bin/bash
 
 wit_yaml="./wit.yaml"
 
