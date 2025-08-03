@@ -71,8 +71,6 @@ install(){
 
     user="$service"
 
-    sudo su
-
     # Create user if it doesn't exist
     if ! id "$user" &>/dev/null; then
         echo "[+] Creating user: $user"
