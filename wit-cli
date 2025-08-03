@@ -80,7 +80,8 @@ install(){
     fi
 
     # Ensure user is in required groups
-    for group in gitdeploy docker; do
+    # Done like this for better scalability
+    for group in docker; do
         if ! id -nG "$user" | grep -qw "$group"; then
             echo "[+] Adding $user to $group group"
             sudo usermod -aG "$group" "$user"
@@ -160,8 +161,6 @@ install(){
         echo "[x] Failed to start the service"
         echo "[i] Service status:"
         "${userenv[@]}" systemctl --user status "$service_name"
-        echo "[i] Logs:"
-        "${userenv[@]}" journalctl --user -u "$service_name" --no-pager -n 20
         exit 1
     fi
 
