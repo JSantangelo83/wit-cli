@@ -168,11 +168,8 @@ install(){
 
 
     # If running, route it through Cloudflare
-    cat <<EOF | sudo tee -a /etc/cloudflared/config.yml > /dev/null
-  - hostname: $dns.witjt.org
-    service: http://localhost:$port
-EOF
-
+    sudo yq -y -i ".ingress += [{hostname: \"$dns.witjt.org\", service: \"http://localhost:$port\"}]" /etc/cloudflared/config.yml
+    
     sudo cloudflared tunnel route dns wit-shared "$dns.witjt.org"
     sudo systemctl restart cloudflared
 }
