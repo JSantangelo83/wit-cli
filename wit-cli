@@ -181,9 +181,15 @@ install(){
     # If running, route it through Cloudflare
     echo "[+] Adding entry to /etc/cloudflared/config.yml"
 
-    sudo yq -y -i '
+    # Check if the hostname is already present in the ingress list
+    if ! sudo yq -e ".ingress[] | select(.hostname == \"$dns.witjt.org\")" /etc/cloudflared/config.yml >/dev/null; then
+        echo "[+] Adding entry to /etc/cloudflared/config.yml"
+        sudo yq -y -i '
         .ingress |= ((.[0:-1]) + [{"hostname": "'$dns'.witjt.org", "service": "http://localhost:'$port'"}] + [.[-1]])
-    ' /etc/cloudflared/config.yml
+        ' /etc/cloudflared/config.yml
+    else
+        echo "[!] Entry for $dns.witjt.org already exists in config.yml"
+    fi
     
     echo "[+] Adding route dns to 'wit-shared' tunnel"
     
