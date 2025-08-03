@@ -32,7 +32,6 @@ get_port() {
     done
 }
 
-
 help() {
     echo "Usage: $0 [COMMAND | OPTION] [ARGS...]"
     echo
@@ -54,9 +53,9 @@ update(){
 
 install(){
     check_dependencies;
-    
+
     service="$1"
-    if ! [ -n $service ]; then
+    if ! [ -n "$service" ]; then
         help;
         exit 1;
     fi
@@ -64,7 +63,7 @@ install(){
     giturl="$(yq -r ".services[\"$service\"].giturl" $wit_yaml)"
     reponame=$(echo "$giturl" | grep -oE '[^/]+\.git$' | sed 's/\.git$//')
 
-    if ! [ -n $giturl ]; then
+    if ! [ -n "$giturl" ]; then
         echo '[x] Service not found';
         exit 1;
     fi
@@ -74,7 +73,7 @@ install(){
     # Create user if it doesn't exist
     if ! id "$user" &>/dev/null; then
         echo "[+] Creating user: $user"
-        useradd -m "$user"
+        sudo useradd -m "$user"
     else
         echo "[!] User $user already exists"
     fi
@@ -83,16 +82,16 @@ install(){
     for group in gitdeploy docker; do
         if ! id -nG "$user" | grep -qw "$group"; then
             echo "[+] Adding $user to $group group"
-            usermod -aG "$group" "$user"
+            sudo usermod -aG "$group" "$user"
         fi
     done
-    
+
     home="/home/$user"
-    
+
     # Install ssh config to use gitdeploy's key
-    sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" -q
+    sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f "$home/.ssh/id_rsa" -N "" -q
     echo -e '[+] Generated keys:\n'
-    sudo -u "$user" -H cat $home/.ssh/id_rsa.pub
+    sudo -u "$user" -H cat "$home/.ssh/id_rsa.pub"
     # Show key and wait for user input to continue
     echo -e "\nPress Enter after you added the key as a Deploy Key on Github..."
     read
@@ -124,13 +123,13 @@ install(){
 
     # Install and run service
     if ! [ -f "$home/.config/systemd/user/$service" ]; then
-        sudo -u "$user" -H mkdir -p $home/.config/systemd/user
+        sudo -u "$user" -H mkdir -p "$home/.config/systemd/user"
         sudo -u "$user" -H cp "$home/$reponame/$service" "$home/.config/systemd/user/"
     fi
 
     sudo -u "$user" -H systemctl --user daemon-reload
-    sudo -u "$user" -H systemctl --user enable $(basename $service)
-    sudo -u "$user" -H systemctl --user start $(basename $service)
+    sudo -u "$user" -H systemctl --user enable "$(basename "$service")"
+    sudo -u "$user" -H systemctl --user start "$(basename "$service")"
 
     # If not running, stop
     if ! sudo -u "$user" -H systemctl --user start "$(basename "$service")"; then
@@ -140,15 +139,15 @@ install(){
     fi
 
     echo "[+] Service started successfully"
-    
+
     # If running, route it through Cloudflare
     cat <<EOF | sudo tee -a /etc/cloudflare/config.yml > /dev/null
   - hostname: $dns.witjt.org
     service: http://localhost:$port
 EOF
 
-    cloudflared tunnel route dns wit-shared "$dns.witjt.org"
-    systemctl restart cloudflared
+    sudo cloudflared tunnel route dns wit-shared "$dns.witjt.org"
+    sudo systemctl restart cloudflared
 }
 
 case "$1" in
@@ -156,7 +155,7 @@ case "$1" in
         update
         ;;
     install|-i|--install)
-        install $2
+        install "$2"
         ;;
     help|-h|--help|"")
         help
@@ -167,4 +166,3 @@ case "$1" in
         exit 1
         ;;
 esac
-
