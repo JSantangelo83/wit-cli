@@ -89,13 +89,15 @@ install(){
 
     home="/home/$user"
 
-    # Install ssh config to use gitdeploy's key
-    sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f "$home/.ssh/id_rsa" -N "" -q
-    echo -e '[+] Generated keys:\n'
-    sudo -u "$user" -H cat "$home/.ssh/id_rsa.pub"
-    # Show key and wait for user input to continue
-    echo -e "\nPress Enter after you added the key as a Deploy Key on Github..."
-    read
+    if ! [ -f "$home/.ssh/id_rsa" ]; then
+        # Generate ssh keys and show public
+        sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f "$home/.ssh/id_rsa" -N "" -q
+        echo -e '[+] Generated keys:\n'
+        sudo -u "$user" -H cat "$home/.ssh/id_rsa.pub"
+        # Show key and wait for user input to continue
+        echo -e "\nPress Enter after you added the key as a Deploy Key on Github..."
+        read
+    fi
 
     # Clone repo
     if [ ! -d "$home/$reponame/.git" ]; then
