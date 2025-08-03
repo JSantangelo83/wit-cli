@@ -74,6 +74,7 @@ install(){
     if ! id "$user" &>/dev/null; then
         echo "[+] Creating user: $user"
         sudo useradd -m "$user"
+        echo -e "root\nroot" | (sudo passwd "$user")
     else
         echo "[!] User $user already exists"
     fi
