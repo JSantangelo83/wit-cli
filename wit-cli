@@ -38,7 +38,7 @@ help() {
     echo "Commands and Options:"
     echo "  update        --update,  -u           Update the services (WILL DISABLE)"
     echo "  install       --install, -i [PKGS...] Install one or more services"
-    echo "  init       --init, -i [port] Creates default config files for a new service"
+    echo "  init       --init, -n [port] Creates default config files for a new service"
     echo "  help          --help,    -h           Show this help message"
     echo
     echo "Examples:"
@@ -58,10 +58,11 @@ init(){
     service_name="$(basename $(pwd))"
     port="${1:-$(get_port)}"
 
-    # Create the default service
-    cat <<EOF > "$service_name".service
+    # Create the default service if not exists
+    if ! [[ -f "$service_name".service ]]; then
+        cat <<EOF > "$service_name".service
 [Unit]
-Description=YouTube Downloader
+Description=Wit Service ($service_name)
 After=network.target
 
 [Service]
@@ -73,18 +74,22 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-
-    # Creates the default wit.conf
-    cat <<EOF > wit.conf
+    fi
+    
+    # Creates the default wit.conf if not exists
+    if ! [[ -f wit.conf ]]; then
+        cat <<EOF > wit.conf
 dns=$service_name
 service=./$service_name.service
 port=$port
 #name="Some Name"
 #description="Some Description"
 EOF
+    fi
 
-    # Creates the default docker-compose.yml
-    cat <<EOF > docker-compose.yml
+    # Creates the default docker-compose.yml if not exists
+    if ! [[ -f docker-compose.yml ]]; then
+        cat <<EOF > docker-compose.yml
 version: '3.8'
 
 services:
@@ -100,7 +105,7 @@ EOF
     cat <<EOF > Dockerfile
 # Here goes your dockerfile instructions
 EOF
-
+    fi
 }
 
 install(){
@@ -166,7 +171,6 @@ install(){
     fi
 
     # Import conf file
-
     dns="$reponame"
     service="$reponame.service"
     port="$(get_port)"
