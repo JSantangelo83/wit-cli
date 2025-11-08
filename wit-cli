@@ -67,7 +67,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=%h/$service_name
-ExecStart=/usr/bin/docker compose up -d
+ExecStart=/usr/bin/docker compose up
 ExecStop=/usr/bin/docker compose down
 Restart=always
 
@@ -185,7 +185,8 @@ install(){
     else
         echo "[!] Config file not found: $conf_file. Using defaults."
     fi
-
+    # Ensuring systemd available on each terminal
+    sudo -u "$user" -H echo "export XDG_RUNTIME_DIR=/run/user/$(id -u \"$user\")" >> $home/.bashrc
     # Install and run service
     service_name="$(basename "$service")"
     user_systemd_dir="$home/.config/systemd/user"
