@@ -75,7 +75,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
     fi
-    
+
     # Creates the default wit.conf if not exists
     if ! [[ -f wit.conf ]]; then
         cat <<EOF > wit.conf
@@ -194,6 +194,9 @@ install(){
 
     uid=$(id -u "$user")
     userenv=(sudo -u "$user" env XDG_RUNTIME_DIR="/run/user/$uid")
+
+    # ensure the user systemd instance is running
+    "${userenv[@]}" systemd-run --user --scope true
 
     if ! "${userenv[@]}" test -f "$user_systemd_dir/$service_name"; then
         echo "[+] Installing systemd service for $user"
