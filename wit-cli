@@ -185,10 +185,10 @@ install(){
         source "$conf_file"
     else
         echo "[!] Config file not found: $conf_file. Using defaults."
-        sudo -u "$user" -H bash -c "init \"$home/$reponame\""
+        sudo -u "$user" -H bash -c "init "$home/$reponame""
     fi
     # Ensuring systemd available on each terminal
-    echo "export XDG_RUNTIME_DIR=/run/user/$(id -u \"$user\")" | sudo -u "$user" -H tee $home/.bashrc
+    echo "export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")" | sudo -u "$user" -H tee $home/.bashrc
     # Install and run service
     service_name="$(basename "$service")"
     user_systemd_dir="$home/.config/systemd/user"
