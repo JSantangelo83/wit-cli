@@ -1,7 +1,6 @@
 #!/bin/bash
 
 wit_yaml="/etc/wit-cli/wit.yaml"
-
 check_dependencies() {
     local missing=()
     local dependencies=("yq")
@@ -38,7 +37,7 @@ help() {
     echo "Commands and Options:"
     echo "  update        --update,  -u           Update the services (WILL DISABLE)"
     echo "  install       --install, -i [PKGS...] Install one or more services"
-    echo "  init       --init, -n [port] Creates default config files for a new service"
+    echo "  init       --init, -n [path] [port] Creates default config files for a new service"
     echo "  help          --help,    -h           Show this help message"
     echo
     echo "Examples:"
@@ -54,13 +53,13 @@ update(){
 
 init(){
     check_dependencies;
-
-    service_name="$(basename $(pwd))"
-    port="${1:-$(get_port)}"
+    path="$(realpath "${1:-.}")"
+    service_name="$(basename $path)"
+    port="${2:-$(get_port)}"
 
     # Create the default service if not exists
     if ! [[ -f "$service_name".service ]]; then
-        cat <<EOF > "$service_name".service
+        cat <<EOF > "$path/$service_name".service
 [Unit]
 Description=Wit Service ($service_name)
 After=network.target
@@ -78,7 +77,7 @@ EOF
 
     # Creates the default wit.conf if not exists
     if ! [[ -f wit.conf ]]; then
-        cat <<EOF > wit.conf
+        cat <<EOF > "$path/wit.conf"
 dns=$service_name
 service=./$service_name.service
 port=$port
@@ -89,7 +88,7 @@ EOF
 
     # Creates the default docker-compose.yml if not exists
     if ! [[ -f docker-compose.yml ]]; then
-        cat <<EOF > docker-compose.yml
+        cat <<EOF > "$path/docker-compose.yml"
 version: '3.8'
 
 services:
@@ -184,6 +183,7 @@ install(){
         source "$conf_file"
     else
         echo "[!] Config file not found: $conf_file. Using defaults."
+        init "$home/$reponame"
     fi
     # Ensuring systemd available on each terminal
     sudo -u "$user" -H echo "export XDG_RUNTIME_DIR=/run/user/$(id -u \"$user\")" >> $home/.bashrc
@@ -264,10 +264,12 @@ case "$1" in
         update
         ;;
     install|-i|--install)
-        install "$2"
+        shift
+        install "$@"
         ;;
-    init|-n|--init|"")
-        init "$2"
+    init|-n|--init)
+        shift
+        init "$@"
         ;;
     help|-h|--help|"")
         help
