@@ -59,7 +59,7 @@ init(){
 
     # Create the default service if not exists
     if ! [[ -f "$service_name".service ]]; then
-        cat <<EOF > "$path/$service_name".service
+        cat <<EOF > "$path/$service_name.service"
 [Unit]
 Description=Wit Service ($service_name)
 After=network.target
@@ -106,6 +106,8 @@ EOF
 EOF
     fi
 }
+
+export -f init;
 
 install(){
     check_dependencies;
@@ -183,10 +185,10 @@ install(){
         source "$conf_file"
     else
         echo "[!] Config file not found: $conf_file. Using defaults."
-        init "$home/$reponame"
+        sudo -u "$user" -H bash -c "init \"$home/$reponame\""
     fi
     # Ensuring systemd available on each terminal
-    sudo -u "$user" -H echo "export XDG_RUNTIME_DIR=/run/user/$(id -u \"$user\")" >> $home/.bashrc
+    echo "export XDG_RUNTIME_DIR=/run/user/$(id -u \"$user\")" | sudo -u "$user" -H tee $home/.bashrc
     # Install and run service
     service_name="$(basename "$service")"
     user_systemd_dir="$home/.config/systemd/user"
