@@ -101,7 +101,7 @@ services:
     restart: unless-stopped
 EOF
     # Creates default Dockerfile
-    cat <<EOF > Dockerfile
+    cat <<EOF > "$path/Dockerfile"
 # Here goes your dockerfile instructions
 EOF
     fi
