@@ -78,8 +78,6 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-fi
-
     fi
 
     # Creates the default wit.conf if not exists
@@ -226,7 +224,7 @@ install(){
         "${userenv[@]}" mkdir -p "$user_systemd_dir"
         "${userenv[@]}" cp "$home/$reponame/$service" "$user_systemd_dir/"
         info "Reloading user systemd daemon"
-        "${userenv[@]}" systemctl --user daemon-reload
+        "${userenv[@]}" systemctl --user daemon-reload &>/dev/null
     else
         warn "Service already installed: $user_systemd_dir/$service_name"
     fi
