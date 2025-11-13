@@ -190,8 +190,22 @@ install(){
         warn "Config file not found: $conf_file. Using defaults."
         sudo -u "$user" -H bash -c "$(declare -f init);$(declare -f get_port); init '$home/$reponame'"
     fi
+
     # Ensuring systemd available on each terminal
-    echo "export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")" | sudo -u "$user" -H tee $home/.bashrc > /dev/null
+    line='export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")'
+    if ! sudo -u "$user" grep -Fxq "$line" "$home/.bashrc"; then
+        info "Adding XDG_RUNTIME_DIR export to bashrc"
+        echo "$line" | sudo -u "$user" -H tee -a "$home/.bashrc" > /dev/null
+    fi
+
+    # Ensuring alias for systemctl --user exists
+    alias_line="alias sctl='systemctl --user'"
+    if ! sudo -u "$user" grep -Fxq "$alias_line" "$home/.bashrc"; then
+        info "Adding 'sctl' alias to bashrc"
+        echo "$alias_line" | sudo -u "$user" -H tee -a "$home/.bashrc" > /dev/null
+    fi
+
+
     # Install and run service
     service_name="$(basename "$service")"
     user_systemd_dir="$home/.config/systemd/user"
