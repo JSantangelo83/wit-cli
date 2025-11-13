@@ -62,21 +62,24 @@ init(){
     port="${2:-$(get_port)}"
 
     # Create the default service if not exists
-    if ! [[ -f "$service_name".service ]]; then
+    if ! [[ -f "$path/$service_name.service" ]]; then
         cat <<EOF > "$path/$service_name.service"
 [Unit]
 Description=Wit Service ($service_name)
 After=network.target
 
 [Service]
+User=$USER
 WorkingDirectory=%h/$service_name
-ExecStart=/usr/bin/docker compose up
-ExecStop=/usr/bin/docker compose down
+ExecStart=/usr/bin/docker compose --project-directory %h/$service_name up
+ExecStop=/usr/bin/docker compose --project-directory %h/$service_name down
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 EOF
+fi
+
     fi
 
     # Creates the default wit.conf if not exists
@@ -230,7 +233,7 @@ install(){
 
     if ! "${userenv[@]}" systemctl --user is-enabled "$service_name" >/dev/null 2>&1; then
         info "Enabling service $service_name"
-        if ! "${userenv[@]}" systemctl --user enable "$service_name"; then
+        if ! "${userenv[@]}" systemctl --user enable "$service_name" &> /dev/null; then
             error "Failed to enable service: $service_name"
         fi
     else
