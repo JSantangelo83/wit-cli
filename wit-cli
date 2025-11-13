@@ -192,7 +192,7 @@ install(){
     fi
 
     # Ensuring systemd available on each terminal
-    line='export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")'
+    line="export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")"
     if ! sudo -u "$user" grep -Fxq "$line" "$home/.bashrc"; then
         info "Adding XDG_RUNTIME_DIR export to bashrc"
         echo "$line" | sudo -u "$user" -H tee -a "$home/.bashrc" > /dev/null
