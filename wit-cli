@@ -1,6 +1,17 @@
 #!/bin/bash
 
 wit_yaml="/etc/wit-cli/wit.yaml"
+
+trap 'exit 1' TERM
+
+info()  { echo -e "\e[32m[+] $1\e[0m"; }
+warn()  { echo -e "\e[33m[!] $1\e[0m"; }
+error() {
+    set +e
+    echo -e "\e[31m[-] $1, exiting...\e[0m" >&2
+    kill -s TERM "$$";
+}
+
 check_dependencies() {
     local missing=()
     local dependencies=("yq")
@@ -12,12 +23,11 @@ check_dependencies() {
     done
 
     if [ "${#missing[@]}" -gt 0 ]; then
-        echo "[-] The following required command(s) are missing:"
+        warn "The following required command(s) are missing:"
         for cmd in "${missing[@]}"; do
             echo "  - $cmd"
         done
-        echo "[-] Please install them and try again."
-        exit 1
+        error "Cannot run without all dependencies"
     fi
 }
 
@@ -35,24 +45,18 @@ help() {
     echo "Usage: $(basename $0) [COMMAND | OPTION] [ARGS...]"
     echo
     echo "Commands and Options:"
-    echo "  update        --update,  -u           Update the services (WILL DISABLE)"
-    echo "  install       --install, -i [PKGS...] Install one or more services"
-    echo "  init       --init, -n [path] [port] Creates default config files for a new service"
+    echo "  install       --install, -i [services...] Install one or more services"
+    echo "  init       --init, -n [path] [port] Creates default config files for a new service (uses the directory name as service name)"
     echo "  help          --help,    -h           Show this help message"
     echo
     echo "Examples:"
-    echo "  $(basename $0) update"
-    echo "  $(basename $0) -u"
     echo "  $(basename $0) install service1 service2"
     echo "  $(basename $0) -i service1"
-}
-
-update(){
-    check_dependencies;
+    echo "  $(basename $0) init ./service2 1234"
+    echo "  $(basename $0) -n service2 1234"
 }
 
 init(){
-    check_dependencies;
     path="$(realpath "${1:-.}")"
     service_name="$(basename $path)"
     port="${2:-$(get_port)}"
@@ -110,9 +114,9 @@ EOF
 export -f init;
 
 install(){
-    check_dependencies;
-
     service="$1"
+    config_path="$2"
+
     if ! [ -n "$service" ]; then
         help;
         exit 1;
@@ -122,26 +126,25 @@ install(){
     reponame=$(echo "$giturl" | grep -oE '[^/]+\.git$' | sed 's/\.git$//')
 
     if ! [ -n "$giturl" ]; then
-        echo '[x] Service not found';
-        exit 1;
+        error 'Service not found';
     fi
 
     user="$service"
 
     # Create user if it doesn't exist
-    if ! id "$user" &>/dev/null; then
-        echo "[+] Creating user: $user"
+    if ! id "$user" >/dev/null 2>&1; then
+        info "Creating user: $user"
         sudo useradd -m "$user"
         echo -e "root\nroot" | (sudo passwd "$user")
     else
-        echo "[!] User $user already exists"
+        warn "User $user already exists"
     fi
 
     # Ensure user is in required groups
     # Done like this for better scalability
     for group in docker; do
         if ! id -nG "$user" | grep -qw "$group"; then
-            echo "[+] Adding $user to $group group"
+            info "Adding $user to $group group"
             sudo usermod -aG "$group" "$user"
         fi
     done
@@ -150,25 +153,25 @@ install(){
 
     # Install ssh key if it doesn't exist
     if ! sudo -u "$user" test -f "$home/.ssh/id_rsa"; then
-        echo "[+] Generating SSH key for $user"
+        info "Generating SSH key for $user"
         sudo -u "$user" -H mkdir -p "$home/.ssh"
         sudo -u "$user" -H ssh-keygen -t rsa -b 2048 -f "$home/.ssh/id_rsa" -N "" -q
 
-        echo -e '[+] Public key:\n'
+        info 'Public key:'
         sudo -u "$user" -H cat "$home/.ssh/id_rsa.pub"
 
         echo -e "\nPress Enter after you added the key as a Deploy Key on Github..."
         read
     else
-        echo "[!] SSH key already exists for $user"
+        warn "SSH key already exists for $user"
     fi
 
     # Clone repo
     if [ ! -d "$home/$reponame/.git" ]; then
-        echo "[+] Cloning $giturl"
+        info "Cloning $giturl"
         sudo -u "$user" -H git clone "$giturl" "$home/$reponame"
     else
-        echo "[!] Repo already exists: $home/$reponame"
+        warn "Repo already exists: $home/$reponame"
     fi
 
     # Import conf file
@@ -184,11 +187,11 @@ install(){
         # shellcheck source=/dev/null
         source "$conf_file"
     else
-        echo "[!] Config file not found: $conf_file. Using defaults."
-        sudo -u "$user" -H bash -c "init "$home/$reponame""
+        warn "Config file not found: $conf_file. Using defaults."
+        sudo -u "$user" -H bash -c "$(declare -f init);$(declare -f get_port); init '$home/$reponame'"
     fi
     # Ensuring systemd available on each terminal
-    echo "export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")" | sudo -u "$user" -H tee $home/.bashrc
+    echo "export XDG_RUNTIME_DIR=/run/user/$(id -u "$user")" | sudo -u "$user" -H tee $home/.bashrc > /dev/null
     # Install and run service
     service_name="$(basename "$service")"
     user_systemd_dir="$home/.config/systemd/user"
@@ -199,67 +202,62 @@ install(){
     userenv=(sudo -u "$user" env XDG_RUNTIME_DIR="/run/user/$uid")
 
     # ensure the user systemd instance is running
-    "${userenv[@]}" systemd-run --user --scope true
+    "${userenv[@]}" systemd-run --user --scope true >/dev/null 2>&1
 
     if ! "${userenv[@]}" test -f "$user_systemd_dir/$service_name"; then
-        echo "[+] Installing systemd service for $user"
+        info "Installing systemd service for $user"
         "${userenv[@]}" mkdir -p "$user_systemd_dir"
         "${userenv[@]}" cp "$home/$reponame/$service" "$user_systemd_dir/"
+        info "Reloading user systemd daemon"
+        "${userenv[@]}" systemctl --user daemon-reload
     else
-        echo "[!] Service already installed: $user_systemd_dir/$service_name"
+        warn "Service already installed: $user_systemd_dir/$service_name"
     fi
 
-    echo "[+] Reloading user systemd daemon"
-    "${userenv[@]}" systemctl --user daemon-reload
-
-    echo "[+] Checking if service is enabled"
     if ! "${userenv[@]}" systemctl --user is-enabled "$service_name" >/dev/null 2>&1; then
-        echo "[+] Enabling service $service_name"
+        info "Enabling service $service_name"
         if ! "${userenv[@]}" systemctl --user enable "$service_name"; then
-            echo "[x] Failed to enable service: $service_name"
-            exit 1
+            error "Failed to enable service: $service_name"
         fi
     else
-        echo "[!] Service $service_name already enabled"
+        warn "Service $service_name already enabled"
     fi
 
-    echo "[+] Checking if service is active"
     if ! "${userenv[@]}" systemctl --user is-active "$service_name" >/dev/null 2>&1; then
-        echo "[+] Starting service $service_name"
+        info "Starting service $service_name"
         if ! "${userenv[@]}" systemctl --user start "$service_name"; then
-            echo "[x] Failed to start the service"
+            warn "Cannot start service"
             echo "[i] Service status:"
             "${userenv[@]}" systemctl --user status "$service_name"
-            exit 1
+            error "Failed to start service"
         fi
     else
-        echo "[!] Service $service_name already running"
+        warn "Service $service_name already running"
     fi
-
-    echo "[+] Service is enabled and running"
-
-
-
-    # If running, route it through Cloudflare
-    echo "[+] Adding entry to /etc/cloudflared/config.yml"
 
     # Check if the hostname is already present in the ingress list
     if ! sudo yq -e ".ingress[] | select(.hostname == \"$dns.witjt.org\")" /etc/cloudflared/config.yml >/dev/null; then
-        echo "[+] Adding entry to /etc/cloudflared/config.yml"
+        info "Adding entry to /etc/cloudflared/config.yml"
         sudo yq -y -i '
         .ingress |= ((.[0:-1]) + [{"hostname": "'$dns'.witjt.org", "service": "http://localhost:'$port'"}] + [.[-1]])
         ' /etc/cloudflared/config.yml
     else
-        echo "[!] Entry for $dns.witjt.org already exists in config.yml"
+        warn "Entry for $dns.witjt.org already exists in config.yml"
     fi
     
-    echo "[+] Adding route dns to 'wit-shared' tunnel"
-    
-    sudo cloudflared tunnel route dns wit-shared "$dns.witjt.org"
-    
-    echo "[+] Restarting cloudflared service"
-    sudo systemctl restart cloudflared
+    if ! cloudflared tunnel route dns wit-shared "$dns.witjt.org" 2>&1 | grep -q "already configured"; then
+        info "Adding route dns to 'wit-shared' tunnel"
+        sudo cloudflared tunnel route dns wit-shared "$dns.witjt.org" > /dev/null 2>&1
+        
+        info "Restarting cloudflared service"
+        sudo systemctl restart cloudflared
+    else
+        warn "Route dns on 'wit-shared' tunnel already created"
+    fi
+
 }
+
+check_dependencies;
 
 case "$1" in
     update|-u|--update)
